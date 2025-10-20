@@ -1,56 +1,232 @@
-# MERN APP
+<img width="576" height="167" alt="7" src="https://github.com/user-attachments/assets/150b13e2-50ac-4938-a7e6-0d54c42077aa" />
+<img width="583" height="339" alt="6" src="https://github.com/user-attachments/assets/0c05c156-81cb-4e46-bb91-11aa9530fd95" />
+<img width="583" height="339" alt="5" src="https://github.com/user-attachments/assets/e71f1e9a-cd69-4498-9da9-032811f81a8f" />
+<img width="583" height="339" alt="4" src="https://github.com/user-attachments/assets/e1a6eb81-238e-4980-8a0c-71dc796adff6" />
+<img width="583" height="339" alt="3" src="https://github.com/user-attachments/assets/7c01c01f-794d-4263-b7d7-cf37d176527f" />
+<img width="608" height="258" alt="2" src="https://github.com/user-attachments/assets/efdf7390-b95a-490a-a1de-dc20c89a7592" />
+<img width="593" height="430" alt="1" src="https://github.com/user-attachments/assets/5505f6bb-14d2-4363-bd4f-1bc350328586" />
+### 📄 `README.md`
 
-## Vue d'Ensemble
-Ce projet est une application full-stack qui consiste en un client React et un serveur Node.js utilisant MongoDB comme base de données. Docker est utilisé pour la conteneurisation, et Docker Compose est utilisé pour orchestrer les services.
+```markdown
+# TP2 - Docker et Docker Compose (MERN Stack)
 
-## Table des Matières
-- [Technologies Utilisées](#technologies-utilisées)
-- [Variables d'Environnement](#variables-denvironnement)
-- [Configuration de Docker](#configuration-de-docker)
-- [Images Docker](#images-docker)
-- [Docker Compose](#docker-compose)
-- [Comment Exécuter le Projet](#comment-executer-le-projet)
+## 🎯 Objectif du TP
+Mettre en place une application **MERN** (MongoDB, Express, React, Node.js) entièrement conteneurisée à l’aide de **Docker** et **Docker Compose**.
 
-## Technologies Utilisées
-- **Frontend** : React
-- **Backend** : Node.js, Express
-- **Base de Données** : MongoDB
-- **Conteneurisation** : Docker, Docker Compose
+L’application comprend :
+- Un **serveur Node.js / Express** connecté à MongoDB.
+- Une **interface React** pour interagir avec les données.
+- Une base de données **MongoDB**.
 
-## Variables d'Environnement
-Les variables d'environnement suivantes sont utilisées dans l'application :
+---
 
-- **REACT_APP_API_URL** : Cette variable contient l'URL de base pour le serveur API. Elle est utilisée dans le client React pour faire des requêtes au serveur.
-- **MONGO_URI** : L'URI de connexion à MongoDB utilisée par le serveur pour se connecter à l'instance MongoDB.
+## 🧱 Structure du projet
 
-## Configuration de Docker
-Ce projet comprend des Dockerfiles pour le client et le serveur, qui facilitent la construction et l'exécution des services dans des conteneurs isolés. Les configurations incluent :
+```
 
-- **Client** : Un environnement Node.js pour construire l'application React. Les dépendances sont installées et l'application est construite pour une utilisation en production. Un serveur HTTP simple peut être utilisé pour servir l'application construite.
-  
-- **Serveur** : Un environnement Node.js qui installe les dépendances nécessaires et configure l'application pour écouter sur un port spécifique.
+mern-app/
+│
+├── client/              # Application React (frontend)
+│   ├── Dockerfile
+│   └── src/
+│
+├── server/              # API Express (backend)
+│   ├── Dockerfile
+│   ├── server.js
+│   ├── routes/record.js
+│   └── db/conn.js
+│
+├── docker-compose.yml   # Configuration Docker Compose
+└── README.md
 
-## Images Docker
-Les images Docker créées pour ce projet sont les suivantes :
+````
 
-- **Image du Client** : `node:lts-alpine`
-- **Image du Serveur** : `node:lts-alpine`
-- **Image de la Base de Données** : `mongo:latest`
+---
 
-Ces images sont spécifiées dans les Dockerfiles respectifs et sont utilisées lors de la construction et du déploiement des services.
+## 🐳 Étapes réalisées
 
-## Docker Compose
-Docker Compose est utilisé pour gérer les différents services de l'application, y compris le client, le serveur et MongoDB. Les services sont interconnectés, ce qui permet une communication fluide entre le client et le serveur. Le fichier de configuration spécifie les images, les ports exposés, ainsi que les variables d'environnement nécessaires pour chaque service.
+### 1️⃣ Création des Dockerfiles
 
-## Comment Exécuter le Projet
-1. Assurez-vous d'avoir Docker et Docker Compose installés sur votre machine.
-2. Clonez ce dépôt sur votre machine locale.
-3. Accédez au répertoire du projet dans votre terminal.
-4. Construisez et démarrez l'application en utilisant Docker Compose :
+#### **Dockerfile du serveur (Express)**
 
-   ```bash
-   docker-compose up --build
-   ```
+Fichier : `server/Dockerfile`
 
-5. Accédez au client à [http://localhost:3000](http://localhost:3000).
+```dockerfile
+FROM node:lts-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install --production
+COPY . .
+EXPOSE 9000
+ENV MONGO_URI="mongodb://mongodb:27017/mern"
+CMD ["npm", "start"]
+````
+
+👉 Ce Dockerfile :
+
+* Utilise `node:lts-alpine` comme image de base.
+* Installe les dépendances.
+* Copie le code du serveur.
+* Expose le port **9000**.
+* Définit la variable d’environnement `MONGO_URI`.
+* Lance l’application avec `npm start`.
+
+---
+
+#### **Dockerfile du client (React)**
+
+Fichier : `client/Dockerfile`
+
+```dockerfile
+FROM node:lts-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+RUN npm install -g serve
+EXPOSE 3000
+CMD ["serve", "-s", "build", "-l", "3000"]
+```
+
+👉 Ce Dockerfile :
+
+* Construit l’application React avec `npm run build`.
+* Installe `serve` pour héberger la version de production.
+* Expose le port **3000** pour l’accès web.
+
+---
+
+### 2️⃣ Création du fichier Docker Compose
+
+Fichier : `docker-compose.yml`
+
+```yaml
+version: "3.8"
+
+services:
+  # MongoDB
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb-mern
+    networks:
+      - mern-network
+
+  # Serveur Express
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: server
+    ports:
+      - "9000:9000"
+    depends_on:
+      - mongodb
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/mern
+    networks:
+      - mern-network
+
+  # Client React
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: client
+    ports:
+      - "3000:3000"
+    depends_on:
+      - server
+    networks:
+      - mern-network
+
+networks:
+  mern-network:
+    driver: bridge
+```
+
+👉 Ce fichier :
+
+* Définit trois services : **mongodb**, **server**, **client**.
+* Connecte les trois services sur un même réseau `mern-network`.
+* Lie les ports :
+
+  * `3000` → client React
+  * `9000` → serveur Express
+* Gère les dépendances (`depends_on`).
+
+---
+
+### 3️⃣ Lancement de l’application
+
+#### **Étape 1 : Construction et exécution**
+
+Depuis le répertoire racine du projet :
+
+```bash
+sudo docker compose up --build
+```
+
+#### **Étape 2 : Accès aux services**
+
+* **Frontend (React)** → [http://localhost:3000](http://localhost:3000)
+* **Backend (Express API)** → [http://localhost:9000](http://localhost:9000)
+
+---
+
+### 4️⃣ Tests et vérifications
+
+#### Vérifier les conteneurs :
+
+```bash
+sudo docker ps
+```
+
+#### Consulter les logs :
+
+```bash
+sudo docker compose logs -f server
+sudo docker compose logs -f client
+sudo docker compose logs -f mongodb
+```
+
+#### Tester la connexion à l’API :
+
+```bash
+curl http://localhost:9000/
+```
+
+Résultat attendu :
+
+```
+App is running
+```
+
+---
+
+### 5️⃣ Arrêt et nettoyage
+
+Pour arrêter et supprimer tous les conteneurs :
+
+```bash
+sudo docker compose down
+```
+
+---
+
+## 🧠 Conclusion
+
+Ce TP met en œuvre la **conteneurisation complète d’une application MERN**.
+Chaque composant (MongoDB, backend, frontend) est isolé dans son propre conteneur, mais tous communiquent via le réseau Docker `mern-network`.
+Grâce à Docker Compose, un seul fichier permet de **lancer, arrêter et reconstruire** l’ensemble de l’application en une commande.
+
+---
+
+## 👩‍💻 Auteure
+
+**Sarah Ghabri**
+Étudiante en Génie Logiciel
+TP2 - Docker & Docker Compose
+
+```
 
