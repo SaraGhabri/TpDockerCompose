@@ -1,0 +1,40 @@
+services:
+  # service mongodb
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb-mern
+    networks:
+      - mern-network
+
+  # service server (of express)
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: server
+    ports:
+      - "9000:9000"
+    depends_on:
+      - mongodb
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/mern
+    networks:
+      - mern-network
+
+  # service client (of react)
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: client
+    ports:
+      - "3000:3000"
+    depends_on:
+      - server
+    networks:
+      - mern-network
+
+# reseau
+networks:
+  mern-network:
+    driver: bridge
